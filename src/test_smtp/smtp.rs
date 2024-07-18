@@ -64,6 +64,13 @@ impl Connection {
         }
     }
     // Method for handling incoming connections
+    // Main function to handle SMTP connection. Takes reader(input) and writer(output).
+    // - Creates new Connection, sending initial ready message.
+    // - Enters loop
+    // - Read line from the client
+    // - Process line using feed_line
+    // - Send response
+    // - If QUIT breaks
     pub fn handle(reader: &mut dyn BufRead, writer: &mut dyn Write) -> Result<Connection, Error> {
         let mut result = Connection::new();
         writeln!(writer, "{}", MSG_READY)?;
@@ -87,18 +94,26 @@ impl Connection {
         Ok(result)
     }
 
+    // Retrives data only if the connection state is DONE
     fn get_if_done<R, F: FnOnce() -> R>(&self, getter: F) -> Option<R> {
         match self.state {
             State::Done => Some(getter()),
             _ => None,
         }
     }
+
+    // Gets collected messages if the connection is DONE
     pub fn get_messages(&self) -> Option<&Vec<Message>> {
         self.get_if_done(|| &self.messages)
     }
+
+    // Returns sender domain is connection is DONE
     pub fn get_sender_domain(&self) -> Option<&str> {
         self.get_if_done(|| self.sender_domain.as_str())
     }
+
+    // Function that processes each line received from the client based on the current
+    // state of the SMTP connection
     fn feed_line<'a>(&mut self, line: &'a str) -> Result<&'a str, &'a str> {
         match self.state {
             State::Helo => {
