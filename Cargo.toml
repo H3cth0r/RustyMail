@@ -8,6 +8,10 @@ edition = "2021"
 [dependencies]
 tokio = { version = "1", features = ["full"] }
 
+threadpool = "1.7.1"
+num_cpus = "1.0"
+clap = "2.32.0"
+
 [[bin]]
 name = "RustyMail"
 path = "src/main.rs"
@@ -15,3 +19,7 @@ path = "src/main.rs"
 [[bin]]
 name = "smtp_client"
 path = "src/smtp_client.rs"
+
+[[bin]]
+name = "smtp_test"
+path = "src/test_smtp/run_smtp.rs"
