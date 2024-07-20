@@ -40,6 +40,8 @@ impl Connection {
             State::Data         => self.handle_data(line),
             State::Dot          => self.handle_dot(line),
             State::Quit         => self.handle_quit(line),
+            // Add a catch-all pattern for the remaining states
+            _ => Err(format!("Unhandled state: {:?}", self.state)),
         }
     }
     fn handle_helo(&mut self, line: &str) -> Result<String, String> {
@@ -87,7 +89,7 @@ impl Connection {
         self.next_sender.clear();
         self.next_recipients.clear();
         self.next_data.clear();
-        self.state = state::Quit; 
+        self.state = State::Quit; 
         Ok(MSG_OK.to_string())
     }
     fn handle_quit(&mut self, _line: &str) -> Result<String, String> { Ok(MSG_BYE.to_string()) }
@@ -106,7 +108,7 @@ impl Connection {
                     writeln!(writer, "{}", response)?;
                     if response.starts_with("221") { break; }
                 }
-                Err(error) => writeln!(writer, "{}", response)?,
+                Err(error) => writeln!(writer, "{}", error)?,
             }
         }
         Ok(connection)

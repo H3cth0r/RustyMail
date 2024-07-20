@@ -1,12 +1,12 @@
 // Page 29 RFC 821
-pub let HELO_START_CMD:     |domain_t: &str|    = format!("HELO {}", domain_t);
-pub let VERIFY_USER_CMD:    |username_t: &str|  = format!("VRFY {}", username_t);
-pub let MAILING_LIST_CMD:   |group_name_t: &str|= format("EXPN {}", group_name_t)
-pub let SEND_FROM_CMD:      |author_t: &str|    = format!("SEND FROM: {}", author_t);
-pub let SOML_FROM_CMD:      |author_t: &str|    = format!("SOML FROM: {}", author_t);
-pub let SAML_FROM_CMD:      |author_t: &str|    = format!("SAML FROM: {}", author_t);
-pub let MAIL_FROM_CMD:      |author_t: &str|    = format!("MAIL FROM:{}", author_t);
-pub let RCPT_TO_CMD:        |rcpt_t: &str|      = format!("RCPT TO:{}", rcpt_t);
+pub fn HELO_START_CMD(domain_t: &str) -> String { format!("HELO {}", domain_t) }
+pub fn VERIFY_USER_CMD(username_t: &str) -> String { format!("VRFY {}", username_t) }
+pub fn MAILING_LIST_CMD(group_name_t: &str) -> String { format!("EXPN {}", group_name_t) }
+pub fn SEND_FROM_CMD(author_t: &str) -> String { format!("SEND FROM: {}", author_t) }
+pub fn SOML_FROM_CMD(author_t: &str) -> String { format!("SOML FROM: {}", author_t) }
+pub fn SAML_FROM_CMD(author_t: &str) -> String { format!("SAML FROM: {}", author_t) }
+pub fn MAIL_FROM_CMD(author_t: &str) -> String { format!("MAIL FROM:{}", author_t) }
+pub fn RCPT_TO_CMD(rcpt_t: &str) -> String { format!("RCPT TO:{}", rcpt_t) }
 pub const DATA_CMD:         &str                = "DATA";
 pub const DOT_CMD:          &str                = ".";
 pub const RSET_CMD:         &str                = "RSET";
@@ -14,7 +14,8 @@ pub const QUIT_CMD:         &str                = "QUIT";
 pub const NOOP_CMD:         &str                = "NOOP";
 pub const TURN_CMD:         &str                = "TURN";
 
-pub enum State{
+#[derive(Debug, PartialEq)]
+pub enum State {
     Helo,
     Verify,
     MailingList,
@@ -57,7 +58,7 @@ pub const MSG_PARAMETERS_ERROR:     &str    = "501 Syntax error in parameters or
 pub const MSG_COMMAND_NOT_IMPLEMENTED: &str = "502 Command not implemented";
 pub const MSG_BAD_SEQUENCE:         &str    = "503 Bad sequence of commands";
 pub const MSG_PARAMETER_NOT_IMPLEMENTED: &str = "504 Command parameter not implemented";
-pub const MSG_MAILBOX_UNAVAILABLE:  &str    = "550 Requested action not taken: mailbox unavailable";
+// pub const MSG_MAILBOX_UNAVAILABLE:  &str    = "550 Requested action not taken: mailbox unavailable";
 pub const MSG_TRY_FORWARD_PATH:     &str    = "551 User not local; please try <forward-path>";
 pub const MSG_STORAGE_EXCEEDED:     &str    = "552 Requested mail action aborted: exceeded storage allocation";
 pub const MSG_MAILBOX_NAME_INVALID: &str    = "553 Requested action not taken: mailbox name not allowed";

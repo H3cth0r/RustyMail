@@ -4,7 +4,7 @@ use std::io::{BufReader, BufWriter, Result};
 use crate::smtp::Connection;  // Assuming Connection is defined in the parent module
 
 fn handle_client(stream: TcpStream) {
-    let reader = BufReader::new(&stream);
+    let mut reader = BufReader::new(&stream);
     let mut writer = BufWriter::new(&stream);
     
     match Connection::handle(&mut reader, &mut writer) {
