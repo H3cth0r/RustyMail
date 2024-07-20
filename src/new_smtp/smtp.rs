@@ -22,12 +22,14 @@ pub struct Connection {
 }
 impl Connection {
     pub fn new() -> Connection {
-        state:          State::Helo,
-        sender_domain:  "".to_string(),
-        messages:       Vec::new(),
-        next_sender:    "".to_string(),
-        next_recipients:Vec::new(),
-        next_data:      Vec::new(),
+        Connection {
+            state:          State::Helo,
+            sender_domain:  "".to_string(),
+            messages:       Vec::new(),
+            next_sender:    "".to_string(),
+            next_recipients:Vec::new(),
+            next_data:      Vec::new(),
+        }
     }
 
     pub fn feed_line(&mut self, line: &str) -> Result<String, String> {
@@ -54,7 +56,7 @@ impl Connection {
             Ok(MSG_OK.to_string())
         } else { Err(MSG_BAD_SEQUENCE.to_string()) }
     }
-    fn handle_rcpt(&mut self, line&str) -> Result<String, String> {
+    fn handle_rcpt(&mut self, line: &str) -> Result<String, String> {
         if line.starts_with("RCPT TO:") {
             self.next_recipients.push(line[8..].to_string());
             Ok(MSG_OK.to_string())
@@ -99,19 +101,19 @@ impl Connection {
             let line = line.trim_end();
 
             match connection.feed_line(line) {
-                Ok(responce) if responce.is_empty() => {}
-                Ok(responce) => {
-                    writeln!(writer, "{}", responce)?;
-                    if responce.starts_with("221") { break; }
+                Ok(response) if response.is_empty() => {}
+                Ok(response) => {
+                    writeln!(writer, "{}", response)?;
+                    if response.starts_with("221") { break; }
                 }
-                Err(error) => writeln!(writer, "{}", responce)?,
+                Err(error) => writeln!(writer, "{}", response)?,
             }
         }
         Ok(connection)
     }
-    fn get_if_done<R, F: FnOne() -> R>(&self, getter: F) -> Option<R> {
+    fn get_if_done<R, F: FnOnce() -> R>(&self, getter: F) -> Option<R> {
         match self.state {
-            State::Done => Some(getter()),
+            State::Quit => Some(getter()),
             _ => None,
         }
     }

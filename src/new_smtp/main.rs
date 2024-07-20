@@ -1,6 +1,7 @@
 mod commands;
 mod smtp;
+mod server;
 
-
-fn main() {
+fn main() -> std::io::Result<()> {
+    smtp_server::start_server("127.0.0.1:2525")
 }

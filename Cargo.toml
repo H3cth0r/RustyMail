@@ -23,3 +23,7 @@ path = "src/smtp_client.rs"
 [[bin]]
 name = "smtp_test"
 path = "src/test_smtp/run_smtp.rs"
+
+[[bin]]
+name = "smtp_server"
+path = "src/new_smtp/main.rs"
