@@ -1,5 +1,6 @@
 // Page 29 RFC 821
 pub fn HELO_START_CMD(domain_t: &str) -> String { format!("HELO {}", domain_t) }
+pub fn EHLO_START_CMD(domain_t: &str) -> String { format!("EHLO {}", domain_t) }
 pub fn VERIFY_USER_CMD(username_t: &str) -> String { format!("VRFY {}", username_t) }
 pub fn MAILING_LIST_CMD(group_name_t: &str) -> String { format!("EXPN {}", group_name_t) }
 pub fn SEND_FROM_CMD(author_t: &str) -> String { format!("SEND FROM: {}", author_t) }

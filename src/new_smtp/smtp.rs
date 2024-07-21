@@ -45,24 +45,24 @@ impl Connection {
         }
     }
     fn handle_helo(&mut self, line: &str) -> Result<String, String> {
-        if line.starts_with("HELO ") {
+        if line.starts_with("helo ") || line.starts_with("ehlo "){
             self.sender_domain  = line[5..].to_string();
             self.state          = State::MailFrom;
             Ok(MSG_OK.to_string())
         } else { Err(MSG_BAD_SEQUENCE.to_string()) }
     }
     fn handle_email_from(&mut self, line: &str) -> Result<String, String> {
-        if line.starts_with("MAIL FROM:") {
+        if line.starts_with("mail from:") {
             self.next_sender    = line[10..].to_string();
             self.state          = State::Rcpt;
             Ok(MSG_OK.to_string())
         } else { Err(MSG_BAD_SEQUENCE.to_string()) }
     }
     fn handle_rcpt(&mut self, line: &str) -> Result<String, String> {
-        if line.starts_with("RCPT TO:") {
+        if line.starts_with("rcpt to:") {
             self.next_recipients.push(line[8..].to_string());
             Ok(MSG_OK.to_string())
-        } else if line == "DATA" {
+        } else if line == "data" {
             if self.next_recipients.is_empty() { Err(MSG_BAD_SEQUENCE.to_string()) }
             else {
                 self.state = State::Data;
@@ -101,9 +101,9 @@ impl Connection {
         loop {
             let mut line = String::new();
             reader.read_line(&mut line)?;
-            let line = line.trim_end();
+            let line = line.trim_end().to_lowercase();
 
-            match connection.feed_line(line) {
+            match connection.feed_line(&line) {
                 Ok(response) if response.is_empty() => {}
                 Ok(response) => {
                     writeln!(writer, "{}", response)?;
