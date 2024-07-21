@@ -97,6 +97,7 @@ impl Connection {
     pub fn handle(reader: &mut dyn BufRead, writer: &mut dyn Write) -> Result<Connection, Error> {
         let mut connection = Connection::new();
         writeln!(writer, "{}", MSG_READY)?; // 220 ready. ? propagates error
+        writer.flush()?;
         loop {
             let mut line = String::new();
             reader.read_line(&mut line)?;
@@ -106,6 +107,7 @@ impl Connection {
                 Ok(response) if response.is_empty() => {}
                 Ok(response) => {
                     writeln!(writer, "{}", response)?;
+                    writer.flush()?;
                     if response.starts_with("221") { break; }
                 }
                 Err(error) => writeln!(writer, "{}", error)?,
