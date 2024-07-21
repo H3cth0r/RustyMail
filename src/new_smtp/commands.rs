@@ -33,6 +33,18 @@ pub enum State {
     Turn,
 }
 
+#[derive(Debug, PartialEq)]
+pub enum ClientState {
+    Connect,
+    Helo,
+    MailFrom,
+    RcptTo,
+    Data,
+    Content,
+    Quit,
+    Done,
+}
+
 // Server Response to client
 pub const MSG_READY:                &str    = "220 ready";
 pub const MSG_OK:                   &str    = "250 OK";

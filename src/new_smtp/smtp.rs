@@ -1,6 +1,7 @@
 use crate::commands::*;
 use std::io::{ BufRead, Error, Write };
 
+#[derive(Clone)]
 pub struct Message {
     sender:     String,
     recipients: Vec<String>,
