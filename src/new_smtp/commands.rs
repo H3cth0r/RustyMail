@@ -1,19 +1,19 @@
 // Page 29 RFC 821
-pub fn HELO_START_CMD(domain_t: &str) -> String { format!("HELO {}\r\n", domain_t) }
-pub fn EHLO_START_CMD(domain_t: &str) -> String { format!("EHLO {}\r\n", domain_t) }
-pub fn VERIFY_USER_CMD(username_t: &str) -> String { format!("VRFY {}\r\n", username_t) }
-pub fn MAILING_LIST_CMD(group_name_t: &str) -> String { format!("EXPN {}\r\n", group_name_t) }
-pub fn SEND_FROM_CMD(author_t: &str) -> String { format!("SEND FROM:{}\r\n", author_t) }
-pub fn SOML_FROM_CMD(author_t: &str) -> String { format!("SOML FROM:{}\r\n", author_t) }
-pub fn SAML_FROM_CMD(author_t: &str) -> String { format!("SAML FROM:{}\r\n", author_t) }
-pub fn MAIL_FROM_CMD(author_t: &str) -> String { format!("MAIL FROM:{}\r\n", author_t) }
-pub fn RCPT_TO_CMD(rcpt_t: &str) -> String { format!("RCPT TO:{}\r\n", rcpt_t) }
+pub fn HELO_START_CMD(domain_t: &str) -> String { format!("HELO {}\n\r", domain_t) }
+pub fn EHLO_START_CMD(domain_t: &str) -> String { format!("EHLO {}\n\r", domain_t) }
+pub fn VERIFY_USER_CMD(username_t: &str) -> String { format!("VRFY {}\n\r", username_t) }
+pub fn MAILING_LIST_CMD(group_name_t: &str) -> String { format!("EXPN {}\n\r", group_name_t) }
+pub fn SEND_FROM_CMD(author_t: &str) -> String { format!("SEND FROM:{}\n\r", author_t) }
+pub fn SOML_FROM_CMD(author_t: &str) -> String { format!("SOML FROM:{}\n\r", author_t) }
+pub fn SAML_FROM_CMD(author_t: &str) -> String { format!("SAML FROM:{}\n\r", author_t) }
+pub fn MAIL_FROM_CMD(author_t: &str) -> String { format!("MAIL FROM:{}\n\r", author_t) }
+pub fn RCPT_TO_CMD(rcpt_t: &str) -> String { format!("RCPT TO:{}\n\r", rcpt_t) }
 pub const DATA_CMD:         &str                = "DATA\r\n";
-pub const DOT_CMD:          &str                = ".\r\n";
-pub const RSET_CMD:         &str                = "RSET\r\n";
-pub const QUIT_CMD:         &str                = "QUIT\r\n";
-pub const NOOP_CMD:         &str                = "NOOP\r\n";
-pub const TURN_CMD:         &str                = "TURN\r\n";
+pub const DOT_CMD:          &str                = "\r\n.\r";
+pub const RSET_CMD:         &str                = "RSET\n\r";
+pub const QUIT_CMD:         &str                = "QUIT\r";
+pub const NOOP_CMD:         &str                = "NOOP\n\r";
+pub const TURN_CMD:         &str                = "TURN\n\r";
 
 #[derive(Debug, PartialEq)]
 pub enum State {

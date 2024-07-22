@@ -43,12 +43,10 @@ impl SmtpClient {
     fn read_response(&mut self) -> Result<String> {
         let mut response = String::new();
         self.reader.read_line(&mut response)?;
-        println!("Sr: {}", response);
         Ok(response.trim().to_string())
     }
     fn send_command(&mut self, command: &str) -> Result<()> {
-        println!("Sending command: {}", command);
-        writeln!(self.writer, "{}", command);
+        writeln!(self.writer, "{}", command)?;
         self.writer.flush()
     }
     fn handle_connect(&mut self) -> Result<()> {
@@ -67,10 +65,7 @@ impl SmtpClient {
     fn handle_mail_from(&mut self) -> Result<()> {
         self.send_command(&MAIL_FROM_CMD(self.message.get_sender()))?;
         let response = self.read_response()?;
-        println!("{}", MAIL_FROM_CMD(self.message.get_sender()));
-        println!("{}", response);
         if !response.starts_with("250") { return Err(Error::new(std::io::ErrorKind::Other, "MAIL FROM command failed")); }
-        println!("Im herer");
         self.state = ClientState::RcptTo;
         Ok(())
     }
