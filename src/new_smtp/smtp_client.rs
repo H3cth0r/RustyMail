@@ -43,7 +43,7 @@ impl SmtpClient {
     fn read_response(&mut self) -> Result<String> {
         let mut response = String::new();
         self.reader.read_line(&mut response)?;
-        println!("Server response: {}", response.trim());
+        println!("Sr: {}", response);
         Ok(response.trim().to_string())
     }
     fn send_command(&mut self, command: &str) -> Result<()> {
@@ -58,7 +58,7 @@ impl SmtpClient {
         Ok(())
     }
     fn handle_helo(&mut self) -> Result<()> {
-        self.send_command(&HELO_START_CMD("client.example.com"))?;  // TODO Check this domain
+        self.send_command(&HELO_START_CMD("mx.zentinel.com"))?;  // TODO Check this domain
         let response = self.read_response()?;
         if !response.starts_with("250") { return Err(Error::new(std::io::ErrorKind::Other, "HELO command failed")); }
         self.state = ClientState::MailFrom;
@@ -67,7 +67,7 @@ impl SmtpClient {
     fn handle_mail_from(&mut self) -> Result<()> {
         self.send_command(&MAIL_FROM_CMD(self.message.get_sender()))?;
         let response = self.read_response()?;
-        println!("{}", self.message.get_sender());
+        println!("{}", MAIL_FROM_CMD(self.message.get_sender()));
         println!("{}", response);
         if !response.starts_with("250") { return Err(Error::new(std::io::ErrorKind::Other, "MAIL FROM command failed")); }
         println!("Im herer");
