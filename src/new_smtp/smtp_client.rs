@@ -43,9 +43,11 @@ impl SmtpClient {
     fn read_response(&mut self) -> Result<String> {
         let mut response = String::new();
         self.reader.read_line(&mut response)?;
+        println!("Server response: {}", response.trim());
         Ok(response.trim().to_string())
     }
     fn send_command(&mut self, command: &str) -> Result<()> {
+        println!("Sending command: {}", command);
         writeln!(self.writer, "{}", command);
         self.writer.flush()
     }
@@ -65,7 +67,10 @@ impl SmtpClient {
     fn handle_mail_from(&mut self) -> Result<()> {
         self.send_command(&MAIL_FROM_CMD(self.message.get_sender()))?;
         let response = self.read_response()?;
+        println!("{}", self.message.get_sender());
+        println!("{}", response);
         if !response.starts_with("250") { return Err(Error::new(std::io::ErrorKind::Other, "MAIL FROM command failed")); }
+        println!("Im herer");
         self.state = ClientState::RcptTo;
         Ok(())
     }
@@ -104,6 +109,7 @@ impl SmtpClient {
     
 }
 pub fn send_to_remote_smtp(message: &Message, remote_server: &str) -> std::io::Result<()> {
+    println!("{}", remote_server);
     let stream = TcpStream::connect(remote_server)?;
     let mut client = SmtpClient::new(stream, message.to_owned())?;
     client.send_email()

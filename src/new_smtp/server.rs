@@ -18,7 +18,6 @@ use crate::dns_lookup::*;
 const LOCAL_DOMAIN: &str = "yourdomain.com";
 fn extract_email(command: &str) -> &str { command.trim_start_matches('<').trim_end_matches('>') }
 
-
 fn handle_client(stream: TcpStream) {
     let mut reader = BufReader::new(&stream);
     let mut writer = BufWriter::new(&stream);
