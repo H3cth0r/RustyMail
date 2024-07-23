@@ -1,56 +1,69 @@
-use tokio::net::TcpListener;
-use tokio::io::{AsyncReadExt, AsyncWriteExt};
-use crate::smtp::commands::handle_command;
+use std::net::{TcpListener, TcpStream};
+use std::thread;
+use std::io::{ BufReader, BufWriter, Result };
+use crate::smtp::Connection;  // Assuming Connection is defined in the parent module
+use crate::smtp::Message;
+use crate::smtp_client::send_to_remote_smtp;
+use crate::dns_lookup::*;
 
-pub async fn run_smtp_server() {
-    let listener = TcpListener::bind("127.0.0.1:2525").await.unwrap();
-    println!("SMTP server running on 127.0.0.1:2525");
-    loop {
-        let (mut socket, _) = listener.accept().await.unwrap();
-        
-        tokio::spawn(async move {
-            let mut buffer = [0; 1024];
-            let mut data_mode = false;
-            let mut email_data = String::new();
-            socket.write_all(b"220 RustyMail Server ready\r\n").await.unwrap();
-            
-            loop {
-                let n = socket.read(&mut buffer).await.unwrap();
-                if n == 0 {
-                    break;
-                }
-                let input = String::from_utf8_lossy(&buffer[..n]);
-                let lines: Vec<&str> = input.split("\r\n").collect();
-                
-                for line in lines {
-                    if line.is_empty() {
-                        continue;
-                    }
-                    if data_mode {
-                        if line.trim() == "." {
-                            data_mode = false;
-                            println!("Email data received:\n{}", email_data);
-                            email_data.clear();
-                            let response = "250 OK\r\n".to_string();
-                            println!("Responding with: {}", response.trim_end());
-                            socket.write_all(response.as_bytes()).await.unwrap();
-                        } else {
-                            email_data.push_str(line);
-                            email_data.push_str("\r\n");
-                        }
-                    } else {
-                        let response = handle_command(line);
-                        if line.trim().eq_ignore_ascii_case("DATA") {
-                            data_mode = true;
-                        }
-                        println!("Responding with: {}", response.trim_end());
-                        socket.write_all(response.as_bytes()).await.unwrap();
-                        if line.trim().eq_ignore_ascii_case("QUIT") {
-                            return;
-                        }
-                    }
-                }
+// fn handle_client(stream: TcpStream) {
+//     let mut reader = BufReader::new(&stream);
+//     let mut writer = BufWriter::new(&stream);
+//     
+//     match Connection::handle(&mut reader, &mut writer) {
+//         Ok(_) => println!("Connection handled successfully"),
+//         Err(e) => eprintln!("Error handling connection: {}", e),
+//     }
+// }
+const LOCAL_DOMAIN: &str = "yourdomain.com";
+fn extract_email(command: &str) -> &str { command.trim_start_matches('<').trim_end_matches('>') }
+
+fn handle_client(stream: TcpStream) {
+    let mut reader = BufReader::new(&stream);
+    let mut writer = BufWriter::new(&stream);
+    
+    match Connection::handle(&mut reader, &mut writer) {
+        Ok(connection) => {
+            if let Some(messages) = connection.get_messages() {
+                for message in messages { distribute_message(message); }
             }
-        });
+            println!("Connection handled successfully")
+        },
+        Err(e) => eprintln!("Error handling connection: {}", e),
     }
+}
+fn distribute_message(message: &Message) {
+    for recipient in message.get_recipients() {
+        if is_local_recipient(recipient, LOCAL_DOMAIN) {
+            println!("Delivered to local mailbox.")
+        } else {
+            match lookup_mx_record(extract_email(recipient)) {
+                Ok(remote_server) => {
+                    match send_to_remote_smtp(message, &remote_server) {
+                        Ok(_) => println!("Sent to remote SMTP server for {}", recipient),
+                        Err(e) => eprintln!("Failed to send to remote SMTP for {}: {}", recipient, e),
+                    }
+                },
+                Err(e) => eprintln!("Failed to lookup MX record for {}: {}", recipient, e),
+            }
+        }
+    }
+}
+
+pub fn start_server(address: &str) -> Result<()> {
+    let listener = TcpListener::bind(address)?;
+    println!("Server listening on {}", address);
+
+    for stream in listener.incoming() {
+        match stream {
+            Ok(stream) => {
+                thread::spawn(move || {
+                    handle_client(stream);
+                });
+            }
+            Err(e) => eprintln!("Error accepting connection: {}", e),
+        }
+    }
+
+    Ok(())
 }

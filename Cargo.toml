@@ -15,17 +15,5 @@ num_cpus = "1.0"
 clap = "2.32.0"
 
 [[bin]]
-name = "RustyMail"
-path = "src/main.rs"
-
-[[bin]]
-name = "smtp_client"
-path = "src/smtp_client.rs"
-
-[[bin]]
-name = "smtp_test"
-path = "src/test_smtp/run_smtp.rs"
-
-[[bin]]
-name = "smtp_server"
-path = "src/new_smtp/main.rs"
+name = "smtp"
+path = "src/smtp/main.rs"
