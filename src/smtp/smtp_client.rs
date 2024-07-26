@@ -1,7 +1,7 @@
 use std::net::TcpStream;
 use std::io::{ BufReader, BufWriter, Write, BufRead, Result, Error};
 use crate::commands::*;
-use crate::smtp::{ Message };
+use crate::smtp::Message;
 
 pub struct SmtpClient {
     state:              ClientState,

@@ -7,12 +7,16 @@ edition = "2021"
 
 [dependencies]
 tokio = { version = "1", features = ["full"] }
-
 trust-dns-resolver = "0.23.2"
-
 threadpool = "1.7.1"
 num_cpus = "1.0"
 clap = "2.32.0"
+mongodb = "3.0.1"
+serde = { version = "1.0", features = ["derive"] }
+bson = "2.5.0"
+async-trait = "0.1.60"
+chrono = { version = "0.4.19", features = ["serde"] }
+futures-util = "0.3"
 
 [[bin]]
 name = "smtp"
