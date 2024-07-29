@@ -1,45 +1,68 @@
-use std::sync::Arc;
-use std::net::TcpListener;
-use rustls::{ServerConfig, ServerConnection};
-use rustls_pemfile::{certs, pkcs8_private_keys};
-use std::fs::File;
-use std::io::{BufReader, Read, Write};
+use std::net::{TcpListener, TcpStream};
+use std::thread;
+use std::io::{ BufReader, BufWriter, Result };
+use crate::smtp::Connection;  // Assuming Connection is defined in the parent module
+use crate::smtp::Message;
+use crate::smtp_client::send_to_remote_smtp;
+use crate::dns_lookup::*;
 
-fn main() -> std::io::Result<()> {
-    // Load server certificate and private key
-    println!("Current directory: {:?}", std::env::current_dir()?);
-    let cert_file = &mut BufReader::new(File::open("server.crt")?);
-    let key_file = &mut BufReader::new(File::open("server.key")?);
+// fn handle_client(stream: TcpStream) {
+//     let mut reader = BufReader::new(&stream);
+//     let mut writer = BufWriter::new(&stream);
+//     
+//     match Connection::handle(&mut reader, &mut writer) {
+//         Ok(_) => println!("Connection handled successfully"),
+//         Err(e) => eprintln!("Error handling connection: {}", e),
+//     }
+// }
+const LOCAL_DOMAIN: &str = "yourdomain.com";
+fn extract_email(command: &str) -> &str { command.trim_start_matches('<').trim_end_matches('>') }
+
+fn handle_client(stream: TcpStream) {
+    let mut reader = BufReader::new(&stream);
+    let mut writer = BufWriter::new(&stream);
     
-    let cert_chain = certs(cert_file)?.into_iter().map(rustls::Certificate).collect();
-    let mut keys = pkcs8_private_keys(key_file)?;
-    let private_key = rustls::PrivateKey(keys.remove(0));
+    match Connection::handle(&mut reader, &mut writer) {
+        Ok(connection) => {
+            if let Some(messages) = connection.get_messages() {
+                for message in messages { distribute_message(message); }
+            }
+            println!("Connection handled successfully")
+        },
+        Err(e) => eprintln!("Error handling connection: {}", e),
+    }
+}
+fn distribute_message(message: &Message) {
+    for recipient in message.get_recipients() {
+        if is_local_recipient(recipient, LOCAL_DOMAIN) {
+            println!("Delivered to local mailbox.")
+        } else {
+            match lookup_mx_record(extract_email(recipient)) {
+                Ok(remote_server) => {
+                    match send_to_remote_smtp(message, &remote_server) {
+                        Ok(_) => println!("Sent to remote SMTP server for {}", recipient),
+                        Err(e) => eprintln!("Failed to send to remote SMTP for {}: {}", recipient, e),
+                    }
+                },
+                Err(e) => eprintln!("Failed to lookup MX record for {}: {}", recipient, e),
+            }
+        }
+    }
+}
 
-    // Configure the server
-    let config = ServerConfig::builder()
-        .with_safe_defaults()
-        .with_no_client_auth()
-        .with_single_cert(cert_chain, private_key)
-        .expect("Failed to create server config");
-    let config = Arc::new(config);
-
-    // Create a TCP listener
-    let listener = TcpListener::bind("127.0.0.1:8443")?;
-    println!("Server listening on port 8443");
+pub fn start_server(address: &str) -> Result<()> {
+    let listener = TcpListener::bind(address)?;
+    println!("Server listening on {}", address);
 
     for stream in listener.incoming() {
-        let mut stream = stream?;
-        let mut connection = ServerConnection::new(Arc::clone(&config))
-            .expect("Failed to create server connection");
-
-        let mut tls_stream = rustls::Stream::new(&mut connection, &mut stream);
-
-        // Handle the connection
-        let mut buf = [0; 1024];
-        let n = tls_stream.read(&mut buf)?;
-        println!("Received: {}", String::from_utf8_lossy(&buf[..n]));
-
-        tls_stream.write_all(b"Hello from server!")?;
+        match stream {
+            Ok(stream) => {
+                thread::spawn(move || {
+                    handle_client(stream);
+                });
+            }
+            Err(e) => eprintln!("Error accepting connection: {}", e),
+        }
     }
 
     Ok(())
